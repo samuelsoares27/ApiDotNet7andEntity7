@@ -12,21 +12,21 @@ namespace SuperHeroApi.Controllers
         private static ISuperHeroRepository _superHeroRepository;
         public SuperHeroController(ISuperHeroRepository superHeroRepository)
         {
-            _superHeroRepository = superHeroRepository;
-            
+            _superHeroRepository = superHeroRepository;            
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAllHeroes()
         {
-            var superHeroes = await _superHeroRepository.GetAllSuperHeroes();
+            var superHeroes = _superHeroRepository.GetSuperHeroesAndPlace();
+
             return Ok(superHeroes);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetSingleHero(int id)
         {
-            var superHero = await _superHeroRepository.GetSingleHero(id);
+            var superHero = await _superHeroRepository.GetByIdAsync(id);
 
             if (superHero is null)
                 return NotFound("Sorry, but this hero doesn't exist");
@@ -37,22 +37,22 @@ namespace SuperHeroApi.Controllers
         [HttpPost]
         public async Task<IActionResult> AddHero(SuperHero hero)
         {
-            var superHeroes = await _superHeroRepository.GetAllSuperHeroes();
+            var superHeroes = await _superHeroRepository.GetAllAsync();
             var superHero = superHeroes.Where(super => super.Name == hero.Name);
 
             if (superHero is null)
                 return NotFound("Sorry, but this hero exist");
 
-            await _superHeroRepository.AddHero(hero);
+            _superHeroRepository.Insert(hero);
+            await _superHeroRepository.SaveChangesAsync();
 
             return Ok(hero);
         }
 
-
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateHero(int id, SuperHero request)
         {
-            var superHero = await _superHeroRepository.GetSingleHero(id);
+            var superHero = await _superHeroRepository.GetByIdAsync(id);
 
             if (superHero is null)
                 return NotFound("Sorry, but this hero doesn't exist");
@@ -62,20 +62,22 @@ namespace SuperHeroApi.Controllers
             superHero.LastName = request.LastName;
             superHero.Place = request.Place;
 
-            var hero = await _superHeroRepository.UpdateHero(superHero);
+            _superHeroRepository.Update(superHero);
+            await _superHeroRepository.SaveChangesAsync();
 
-            return Ok(hero);
+            return Ok(superHero);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteHero(int id)
         {
-            var superHero = await _superHeroRepository.GetSingleHero(id);
+            var superHero = await _superHeroRepository.GetByIdAsync(id);
 
             if (superHero is null)
                 return NotFound("Sorry, but this hero doesn't exist");
 
-            await _superHeroRepository.DeleteHero(superHero.Id);
+            _superHeroRepository.Delete(superHero);
+            await _superHeroRepository.SaveChangesAsync();
 
             return Ok(superHero);
         }

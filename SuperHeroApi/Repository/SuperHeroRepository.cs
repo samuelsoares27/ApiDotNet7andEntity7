@@ -3,73 +3,35 @@ using SuperHeroApi.Data;
 
 namespace SuperHeroApi.Repository
 {
-    public class SuperHeroRepository : ISuperHeroRepository
+    public class SuperHeroRepository : Repository<SuperHero>, ISuperHeroRepository
     {
-        private static List<SuperHero> _superHeroes = new();
         private readonly DataContext _context;
 
-        public SuperHeroRepository(DataContext context)
+        public SuperHeroRepository(DataContext context) : base(context)
         {
             _context = context;
         }
-        //private readonly _superHeroes.Add(new SuperHero
-        //    {
-        //        Id = 1,
-        //        Name = "Homem aranha",
-        //        FirstName = "Peter",
-        //        LastName = "Parker",
-        //        Place = "Nova York"
-        //    });
-        //    _superHeroes.Add(new SuperHero
-        //    {
-        //        Id = 2,
-        //        Name = "Homem de Ferro",
-        //        FirstName = "Tony",
-        //        LastName = "Stark",
-        //        Place = "Malibu"
-        //    });
-        public async Task<SuperHero?> AddHero(SuperHero Hero)
-        {
-            await _context.SuperHeroes.AddAsync(Hero);
-            await _context.SaveChangesAsync();
-            return Hero;
-        }
 
-        public async Task<SuperHero?> DeleteHero(int id)
-        {
-            var hero = await _context.SuperHeroes.FindAsync(id);
-
-            if(hero is not null) {
-                _context.SuperHeroes.Remove(hero);
-                await _context.SaveChangesAsync();
-            }
-            
-            return hero;
-        }
-
-        public async Task<List<SuperHero>> GetAllSuperHeroes()
-        {
-            var heroes = await _context.SuperHeroes.ToListAsync();
-            return heroes;
-        }
-
-        public async Task<SuperHero?> GetSingleHero(int id)
-        {
-            var hero = await _context.SuperHeroes.FindAsync(id);
-            return hero;
-        }
-
-        public async Task<SuperHero?> UpdateHero(SuperHero Hero)
-        {
-            var heroExist = await _context.SuperHeroes.FindAsync(Hero.Id);
-
-            if (heroExist is not null)
+        public List<SuperHero>? GetSuperHeroesAndPlace()
+        { 
+            var query = from s in _context.SuperHeroes
+            join p in _context.Places on s.IdPlace equals p.Id
+            select new SuperHero
             {
-                _context.SuperHeroes.Remove(Hero);
-                await _context.SaveChangesAsync();
-            }
-            
-            return Hero;
+                Id = s.Id,
+                Name = s.Name,
+                FirstName = s.FirstName,
+                LastName = s.LastName,
+                IdPlace = s.IdPlace,
+                Place = new Place
+                {
+                    Id = p.Id,
+                    City = p.City,
+                    Country = p.Country,
+                }
+            };
+
+            return query.ToList();
         }
     }
 }

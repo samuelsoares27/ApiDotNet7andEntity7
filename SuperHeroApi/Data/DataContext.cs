@@ -18,5 +18,6 @@ namespace SuperHeroApi.Data
         }
 
         public DbSet<SuperHero> SuperHeroes { get; set; }
+        public DbSet<Place> Places { get; set; }
     }
 }
